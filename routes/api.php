@@ -4,6 +4,7 @@ use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\Auth\VerifyEmailController;
+use App\Http\Controllers\Internal\AdminWebhookController;
 use App\Http\Controllers\Internal\InvoiceSyncController;
 use App\Http\Controllers\Internal\ServiceStatusController;
 use App\Http\Controllers\InvoiceController;
@@ -60,6 +61,9 @@ Route::prefix('internal')->middleware('internal.secret')->group(function () {
     Route::post('service-status',   [ServiceStatusController::class, 'update']);
     Route::post('invoices/sync',    [InvoiceSyncController::class, 'sync']);
 });
+
+// HMAC-verified webhook from admin backend — no internal.secret middleware, signature checked inside
+Route::post('internal/webhooks/admin', [AdminWebhookController::class, 'handle']);
 
 /*
 |--------------------------------------------------------------------------

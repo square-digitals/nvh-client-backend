@@ -390,6 +390,42 @@ Create or update an invoice record synced from the admin backend. Keyed on `exte
 
 ---
 
+### POST /api/internal/webhooks/admin
+Receive event webhooks from the admin backend. Verified via HMAC-SHA256 signature — does **not** use `X-Internal-Secret`.
+
+**Required headers:**
+- `X-Webhook-Signature: <hmac-sha256 of raw request body using NVH_ADMIN_INTERNAL_SECRET>`
+
+**Supported events:**
+
+`client.suspended` — suspends a client account and blocks login:
+```json
+{
+  "event": "client.suspended",
+  "external_id": "019edbda-...",
+  "suspended_reason": "Outstanding invoice overdue by 30 days."
+}
+```
+
+`client.unsuspended` — reinstates the client:
+```json
+{
+  "event": "client.unsuspended",
+  "external_id": "019edbda-..."
+}
+```
+
+**Response `200`:**
+```json
+{ "message": "ok" }
+```
+
+Unknown events are silently ignored and return `200`. Unknown `external_id` is also silently ignored.
+
+**Response `401`:** Invalid or missing HMAC signature
+
+---
+
 ### POST /api/internal/service-status
 Receive a service status update pushed from the admin backend. Updates the local service record and triggers client notifications when status changes.
 

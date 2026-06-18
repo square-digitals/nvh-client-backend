@@ -22,6 +22,7 @@ class Client extends Authenticatable implements MustVerifyEmail
         'phone',
         'company',
         'status',
+        'suspended_reason',
         'plan',
         'external_admin_id',
     ];
