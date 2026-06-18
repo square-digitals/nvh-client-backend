@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
+use App\Http\Controllers\Internal\InvoiceSyncController;
 use App\Http\Controllers\Internal\ServiceStatusController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\ServiceController;
@@ -50,8 +51,8 @@ Route::middleware(['auth:sanctum', 'csrf', 'verified'])->group(function () {
 |--------------------------------------------------------------------------
 */
 Route::prefix('internal')->middleware('internal.secret')->group(function () {
-    Route::post('service-status', [ServiceStatusController::class, 'update']);
-    // InvoiceSyncController — wired in Step 10
+    Route::post('service-status',   [ServiceStatusController::class, 'update']);
+    Route::post('invoices/sync',    [InvoiceSyncController::class, 'sync']);
 });
 
 /*

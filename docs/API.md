@@ -331,6 +331,65 @@ All `/api/internal/*` routes are protected by the `X-Internal-Secret` header. Th
 
 ---
 
+### POST /api/internal/invoices/sync
+Create or update an invoice record synced from the admin backend. Keyed on `external_id` — safe to call multiple times with the same payload (idempotent).
+
+**Auth required:** Internal secret header
+
+**Request body:**
+```json
+{
+  "client_id":    "019edbda-...",
+  "external_id":  "admin-inv-001",
+  "amount":       15000.00,
+  "currency":     "NGN",
+  "status":       "unpaid",
+  "due_date":     "2026-07-18",
+  "paid_at":      null,
+  "period_start": "2026-06-18",
+  "period_end":   "2026-07-18"
+}
+```
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `client_id` | string | Yes | Client portal `client.id` |
+| `external_id` | string | Yes | Admin backend invoice ID (upsert key) |
+| `amount` | numeric | Yes | Invoice amount (must be ≥ 0) |
+| `currency` | string | Yes | 3-letter ISO code (e.g. `NGN`) — uppercased automatically |
+| `status` | string | Yes | One of: `unpaid`, `paid`, `overdue`, `void` |
+| `due_date` | date | Yes | Payment due date |
+| `paid_at` | ISO8601\|null | No | Timestamp when payment was received |
+| `period_start` | date\|null | No | Billing period start |
+| `period_end` | date\|null | No | Billing period end |
+
+**Response `200`:**
+```json
+{
+  "invoice": {
+    "id": "019edc01-...",
+    "client_id": "019edbda-...",
+    "external_id": "admin-inv-001",
+    "amount": "15000.00",
+    "currency": "NGN",
+    "status": "unpaid",
+    "due_date": "2026-07-18",
+    "paid_at": null,
+    "period_start": "2026-06-18",
+    "period_end": "2026-07-18",
+    "synced_at": "2026-06-18T10:00:00Z",
+    "created_at": "2026-06-18T10:00:00Z",
+    "updated_at": "2026-06-18T10:00:00Z"
+  }
+}
+```
+
+**Response `404`:** Client not found
+**Response `401`:** Missing or invalid `X-Internal-Secret`
+**Response `422`:** Validation error
+
+---
+
 ### POST /api/internal/service-status
 Receive a service status update pushed from the admin backend. Updates the local service record and triggers client notifications when status changes.
 
