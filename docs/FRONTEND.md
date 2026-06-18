@@ -8,6 +8,7 @@ This document is written for the frontend team building `npanel.newventureshosti
 
 | Environment | Frontend URL | Backend API URL |
 |---|---|---|
+| Local | `http://localhost:3000` | `http://127.0.0.1:8001` |
 | Production | `https://npanel.newventureshosting.com` | `https://npanelapi.newventureshosting.com` |
 | Staging | `https://npanel-staging.newventureshosting.com` | `https://npanelapi-staging.newventureshosting.com` |
 
@@ -70,9 +71,16 @@ const api = axios.create({
 export default api
 ```
 
-Set `NEXT_PUBLIC_API_URL` in your `.env.local`:
+Set `NEXT_PUBLIC_API_URL` in your env file per environment:
 
-```
+```bash
+# .env.local (development)
+NEXT_PUBLIC_API_URL=http://127.0.0.1:8001
+
+# .env.staging
+NEXT_PUBLIC_API_URL=https://npanelapi-staging.newventureshosting.com
+
+# .env.production
 NEXT_PUBLIC_API_URL=https://npanelapi.newventureshosting.com
 ```
 
