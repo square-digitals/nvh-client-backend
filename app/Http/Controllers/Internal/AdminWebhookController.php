@@ -6,19 +6,27 @@ use App\Http\Controllers\Controller;
 use App\Models\Client;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class AdminWebhookController extends Controller
 {
     public function handle(Request $request): JsonResponse
     {
         if (! $this->validSignature($request)) {
+            Log::warning('AdminWebhook: invalid signature', ['payload' => $request->all()]);
             return response()->json(['message' => 'Invalid signature.'], 401);
         }
 
         $event      = $request->input('event');
         $externalId = $request->input('external_id');
 
+        Log::info('AdminWebhook received', ['event' => $event, 'external_id' => $externalId]);
+
         $client = Client::find($externalId);
+
+        if (! $client) {
+            Log::warning('AdminWebhook: client not found', ['external_id' => $externalId]);
+        }
 
         match ($event) {
             'client.suspended'   => $client?->update([
