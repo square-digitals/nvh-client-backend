@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
+use App\Http\Controllers\Auth\VerifyEmailController;
 use App\Http\Controllers\Internal\InvoiceSyncController;
 use App\Http\Controllers\Internal\ServiceStatusController;
 use App\Http\Controllers\InvoiceController;
@@ -21,9 +22,14 @@ Route::prefix('auth')->group(function () {
     Route::post('reset-password',  [ResetPasswordController::class, 'reset'])->middleware('throttle:5,1');
 
     Route::middleware(['auth:sanctum', 'csrf'])->group(function () {
-        Route::post('logout', [AuthController::class, 'logout']);
-        Route::get('me',      [AuthController::class, 'me']);
+        Route::post('logout',           [AuthController::class, 'logout']);
+        Route::get('me',                [AuthController::class, 'me']);
+        Route::post('email/resend',     [VerifyEmailController::class, 'resend'])->middleware('throttle:5,1');
     });
+
+    Route::get('email/verify/{id}/{hash}', [VerifyEmailController::class, 'verify'])
+        ->middleware('signed')
+        ->name('verification.verify');
 });
 
 /*
