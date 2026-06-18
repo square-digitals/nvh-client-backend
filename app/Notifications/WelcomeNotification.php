@@ -7,13 +7,15 @@ use Illuminate\Notifications\Messages\MailMessage;
 
 class WelcomeNotification extends VerifyEmail
 {
-    protected function buildMailMessage($url): MailMessage
+    public function toMail(mixed $notifiable): MailMessage
     {
+        $url = $this->verificationUrl($notifiable);
+
         return (new MailMessage)
             ->subject('Welcome to New Ventures Hosting — Verify Your Email')
             ->markdown('emails.welcome', [
                 'url'  => $url,
-                'name' => $this->notifiable->name,
+                'name' => $notifiable->name,
             ]);
     }
 }
