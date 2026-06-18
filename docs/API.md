@@ -259,6 +259,70 @@ Dispatches `SyncServiceToAdminJob` on the `sync` queue.
 
 ---
 
+## Invoices
+
+All invoice routes require email verification (`verified` middleware).
+
+### GET /api/invoices
+List all invoices belonging to the authenticated client, newest first.
+
+**Auth required:** Yes
+
+**Response `200`:**
+```json
+{
+  "invoices": [
+    {
+      "id": "019edc01-...",
+      "client_id": "019edbda-...",
+      "external_id": "admin-inv-uuid",
+      "amount": "15000.00",
+      "currency": "NGN",
+      "status": "unpaid",
+      "due_date": "2026-07-18",
+      "paid_at": null,
+      "period_start": "2026-06-18",
+      "period_end": "2026-07-18",
+      "synced_at": "2026-06-18T10:00:00Z",
+      "created_at": "2026-06-18T10:00:00Z",
+      "updated_at": "2026-06-18T10:00:00Z"
+    }
+  ]
+}
+```
+
+---
+
+### GET /api/invoices/{invoice}
+Get a single invoice. Scoped to the authenticated client — returns 404 for other clients' invoices.
+
+**Auth required:** Yes
+
+**Response `200`:**
+```json
+{
+  "invoice": {
+    "id": "019edc01-...",
+    "client_id": "019edbda-...",
+    "external_id": "admin-inv-uuid",
+    "amount": "15000.00",
+    "currency": "NGN",
+    "status": "paid",
+    "due_date": "2026-07-18",
+    "paid_at": "2026-06-20T09:00:00Z",
+    "period_start": "2026-06-18",
+    "period_end": "2026-07-18",
+    "synced_at": "2026-06-20T09:01:00Z",
+    "created_at": "2026-06-18T10:00:00Z",
+    "updated_at": "2026-06-20T09:01:00Z"
+  }
+}
+```
+
+**Response `404`:** Invoice not found or belongs to another client
+
+---
+
 ## Internal (Admin Backend → Client Portal)
 
 All `/api/internal/*` routes are protected by the `X-Internal-Secret` header. They are server-to-server only and must never be called from a browser.

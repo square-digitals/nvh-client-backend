@@ -4,6 +4,7 @@ use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\Internal\ServiceStatusController;
+use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\ServiceController;
 use Illuminate\Support\Facades\Route;
 
@@ -36,7 +37,11 @@ Route::middleware(['auth:sanctum', 'csrf', 'verified'])->group(function () {
     Route::get('services/{service}',    [ServiceController::class, 'show']);
     Route::delete('services/{service}', [ServiceController::class, 'terminate']);
 
-    // Account, Invoices, Tickets — wired in subsequent steps
+    // Invoices
+    Route::get('invoices',           [InvoiceController::class, 'index']);
+    Route::get('invoices/{invoice}', [InvoiceController::class, 'show']);
+
+    // Tickets — wired in Step 12
 });
 
 /*
