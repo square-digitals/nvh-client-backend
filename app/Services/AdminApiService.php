@@ -34,7 +34,7 @@ class AdminApiService
                     'external_id' => $client->id,
                     'name'        => $client->name,
                     'email'       => $client->email,
-                    'plan'        => $client->plan,
+                    'plan_slug'   => $client->plan,
                     'status'      => $client->status,
                 ]]],
             ]);

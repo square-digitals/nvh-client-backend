@@ -24,6 +24,8 @@ class AuthController extends Controller
         $client = Client::create($data);
         $client->refresh();
 
+        $client->sendEmailVerificationNotification();
+
         SyncClientToAdminJob::dispatch($client)->onQueue('sync');
 
         $token = $client->createToken('client-token', ['*'], now()->addMinutes(60))->plainTextToken;
@@ -50,7 +52,9 @@ class AuthController extends Controller
         }
 
         if ($client->status === 'suspended') {
-            return response()->json(['message' => 'Your account has been suspended.'], 403);
+            return response()->json([
+                'message' => 'Your account has been suspended.' . ($client->suspended_reason ? ' Reason: ' . $client->suspended_reason : ''),
+            ], 403);
         }
 
         $client->tokens()->delete();

@@ -49,7 +49,7 @@ class AdminApiServiceTest extends TestCase
             'external_id' => 'uuid-001',
             'name'        => 'Alice',
             'email'       => 'alice@example.com',
-            'plan'        => 'starter',
+            'plan_slug'   => 'starter',
             'status'      => 'active',
         ]], $body['clients']);
     }
