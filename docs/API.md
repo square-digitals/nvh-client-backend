@@ -390,6 +390,26 @@ Create or update an invoice record synced from the admin backend. Keyed on `exte
 
 ---
 
+### POST /api/internal/trigger-sync
+Pushes all clients and services to the admin backend in bulk. Called by the admin's "Sync" button to pull everything into the admin dashboard instantly.
+
+**Auth required:** Internal secret header
+
+**No request body.**
+
+**Response `200`:**
+```json
+{ "message": "ok" }
+```
+
+Sends two requests to the admin backend:
+- `POST /api/internal/clients/sync` — all clients with `external_id`, `name`, `email`, `status`, `plan_slug`
+- `POST /api/internal/services/sync` — all services with `external_id`, `client_external_id`, `type`, `name`, `domain`, `status`
+
+Failures on either call are logged silently and do not affect the `200` response.
+
+---
+
 ### POST /api/internal/webhooks/admin
 Receive event webhooks from the admin backend. Verified via HMAC-SHA256 signature — does **not** use `X-Internal-Secret`.
 

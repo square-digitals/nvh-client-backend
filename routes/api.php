@@ -7,6 +7,7 @@ use App\Http\Controllers\Auth\VerifyEmailController;
 use App\Http\Controllers\Internal\AdminWebhookController;
 use App\Http\Controllers\Internal\InvoiceSyncController;
 use App\Http\Controllers\Internal\ServiceStatusController;
+use App\Http\Controllers\Internal\TriggerSyncController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\ServiceController;
 use Illuminate\Support\Facades\Route;
@@ -60,6 +61,7 @@ Route::middleware(['auth:sanctum', 'csrf', 'verified'])->group(function () {
 Route::prefix('internal')->middleware('internal.secret')->group(function () {
     Route::post('service-status',   [ServiceStatusController::class, 'update']);
     Route::post('invoices/sync',    [InvoiceSyncController::class, 'sync']);
+    Route::post('trigger-sync',     [TriggerSyncController::class, 'sync']);
 });
 
 // HMAC-verified webhook from admin backend — no internal.secret middleware, signature checked inside
