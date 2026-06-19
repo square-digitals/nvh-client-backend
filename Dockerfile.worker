@@ -10,13 +10,9 @@ FROM php:8.4-cli-alpine
 RUN apk add --no-cache \
     postgresql-dev \
     icu-dev \
-    ca-certificates \
-    linux-headers
+    ca-certificates
 
 RUN docker-php-ext-install pdo pdo_pgsql intl opcache pcntl
-
-RUN pecl install redis \
-    && docker-php-ext-enable redis
 
 COPY docker/opcache.ini /usr/local/etc/php/conf.d/opcache.ini
 COPY docker/start-worker.sh /usr/local/bin/start-worker.sh
