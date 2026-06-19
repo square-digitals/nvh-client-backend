@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
 
 class VerifyCsrfCookie
@@ -18,6 +19,12 @@ class VerifyCsrfCookie
 
         $cookieToken = $request->cookie('XSRF-TOKEN');
         $headerToken = $request->header('X-XSRF-TOKEN');
+
+        Log::debug('CSRF check', [
+            'cookie' => $cookieToken ? substr($cookieToken, 0, 10).'...' : 'MISSING',
+            'header' => $headerToken ? substr($headerToken, 0, 10).'...' : 'MISSING',
+            'match'  => $cookieToken && $headerToken ? hash_equals($cookieToken, $headerToken) : false,
+        ]);
 
         if (! $cookieToken || ! $headerToken || ! hash_equals($cookieToken, $headerToken)) {
             return response()->json(['message' => 'CSRF token mismatch.'], 419);
