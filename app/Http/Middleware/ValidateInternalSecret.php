@@ -15,7 +15,7 @@ class ValidateInternalSecret
             return response()->json(['message' => 'Unauthorized.'], 401);
         }
 
-        $secret = config('services.internal.secret');
+        $secret = config('services.nvh_admin.secret');
 
         if (! $secret || $request->header('X-Internal-Secret') !== $secret) {
             return response()->json(['message' => 'Unauthorized.'], 401);
