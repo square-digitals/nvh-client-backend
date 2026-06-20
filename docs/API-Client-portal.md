@@ -81,7 +81,7 @@ The client portal makes HTTP calls to the admin backend's internal API using a s
 
 **Base URL:** `config('services.nvh_admin.base_url')` — set via `NVH_ADMIN_BASE_URL` env var
 
-**Shared secret:** `NVH_ADMIN_INTERNAL_SECRET` — must match `INTERNAL_SECRET` on the admin backend. Generate with `openssl rand -hex 32`. Store in Coolify env vars for both apps.
+**Shared secret:** `NVH_INTERNAL_SECRET` — must match on both the admin backend and client portal. Generate with `openssl rand -hex 32`. Store in Coolify env vars for both apps.
 
 **Endpoints called:**
 
@@ -183,10 +183,9 @@ X-Internal-Secret: <shared secret>
 
 Both apps must have the same secret. In Coolify:
 
-- Admin backend env: `INTERNAL_SECRET=<secret>`
-- Client portal env: `NVH_ADMIN_INTERNAL_SECRET=<same secret>` and `CLIENT_PORTAL_INTERNAL_SECRET=<same secret for inbound webhook>`
+Both apps in Coolify: `NVH_INTERNAL_SECRET=<shared secret>`
 
-The client portal's `ValidateInternalSecret` middleware (copied from admin backend) validates inbound webhook calls. The `AdminApiService` attaches the secret to all outbound calls.
+The client portal's `ValidateInternalSecret` middleware validates inbound calls. The `AdminApiService` attaches the secret to all outbound calls.
 
 ---
 
@@ -358,10 +357,7 @@ CORS_ALLOWED_ORIGINS=https://client.newventureshosting.com
 
 # Admin backend communication
 NVH_ADMIN_BASE_URL=https://admin.newventureshosting.com
-NVH_ADMIN_INTERNAL_SECRET=<same as admin backend INTERNAL_SECRET>
-
-# Inbound webhook secret (admin backend sends this)
-INTERNAL_SECRET=<separate secret for inbound webhooks from admin>
+NVH_INTERNAL_SECRET=<shared secret — must match admin backend>
 
 # Payments
 STRIPE_KEY=<pk_live_...>
