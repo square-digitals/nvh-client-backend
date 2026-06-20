@@ -410,39 +410,46 @@ Failures on either call are logged silently and do not affect the `200` response
 
 ---
 
-### POST /api/internal/webhooks/admin
-Receive event webhooks from the admin backend. Verified via HMAC-SHA256 signature — does **not** use `X-Internal-Secret`.
+### POST /api/internal/client-status
+Receive a client status update pushed directly from the admin backend. Updates the local client record, invalidates active sessions on suspension, and sends email notifications when status changes.
 
 **Required headers:**
+- `X-Internal-Secret: <shared secret>`
 - `X-Webhook-Signature: <hmac-sha256 of raw request body using NVH_ADMIN_INTERNAL_SECRET>`
 
-**Supported events:**
-
-`client.suspended` — suspends a client account and blocks login:
+**Request body (suspended):**
 ```json
 {
-  "event": "client.suspended",
-  "external_id": "019edbda-...",
-  "suspended_reason": "Outstanding invoice overdue by 30 days."
+  "external_id": "uuid-of-the-client",
+  "status": "suspended",
+  "suspended_reason": "Non-payment of invoice #INV-0042.",
+  "suspended_at": "2026-06-20T10:00:00+00:00"
 }
 ```
 
-`client.unsuspended` — reinstates the client:
+**Request body (unsuspended):**
 ```json
 {
-  "event": "client.unsuspended",
-  "external_id": "019edbda-..."
+  "external_id": "uuid-of-the-client",
+  "status": "active",
+  "suspended_reason": null,
+  "suspended_at": null
 }
 ```
 
 **Response `200`:**
 ```json
-{ "message": "ok" }
+{ "message": "Client status updated." }
 ```
 
-Unknown events are silently ignored and return `200`. Unknown `external_id` is also silently ignored.
+**Response `401`:** Invalid or missing `X-Internal-Secret` or `X-Webhook-Signature`
+**Response `404`:** Client not found
+**Response `422`:** Validation error
 
-**Response `401`:** Invalid or missing HMAC signature
+---
+
+### POST /api/internal/webhooks/admin *(deprecated — no longer called by admin backend)*
+Previously received generic `client.suspended` / `client.unsuspended` events. Replaced by `POST /api/internal/client-status`. Kept in place but will never fire.
 
 ---
 

@@ -13,6 +13,12 @@ class ClientStatusController extends Controller
 {
     public function update(Request $request): JsonResponse
     {
+        $expected = hash_hmac('sha256', $request->getContent(), config('services.nvh_admin.secret'));
+
+        if (! hash_equals($expected, (string) $request->header('X-Webhook-Signature', ''))) {
+            return response()->json(['message' => 'Invalid signature.'], 401);
+        }
+
         $data = $request->validate([
             'external_id'      => ['required', 'string'],
             'status'           => ['required', 'string', 'in:active,suspended'],
