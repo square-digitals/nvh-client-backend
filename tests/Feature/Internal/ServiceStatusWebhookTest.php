@@ -16,7 +16,7 @@ class ServiceStatusWebhookTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        config(['services.internal.secret' => $this->secret]);
+        config(['services.nvh_admin.secret' => $this->secret]);
     }
 
     private function webhook(array $payload, ?string $secret = null): \Illuminate\Testing\TestResponse

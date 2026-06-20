@@ -327,7 +327,7 @@ Get a single invoice. Scoped to the authenticated client — returns 404 for oth
 
 All `/api/internal/*` routes are protected by the `X-Internal-Secret` header. They are server-to-server only and must never be called from a browser.
 
-**Required header:** `X-Internal-Secret: <INTERNAL_SECRET>`
+**Required header:** `X-Internal-Secret: <NVH_INTERNAL_SECRET>`
 
 ---
 
@@ -415,7 +415,7 @@ Receive a client status update pushed directly from the admin backend. Updates t
 
 **Required headers:**
 - `X-Internal-Secret: <shared secret>`
-- `X-Webhook-Signature: <hmac-sha256 of raw request body using NVH_ADMIN_INTERNAL_SECRET>`
+- `X-Webhook-Signature: <hmac-sha256 of raw request body using NVH_INTERNAL_SECRET>`
 
 **Request body (suspended):**
 ```json
