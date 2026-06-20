@@ -5,6 +5,9 @@ namespace App\Jobs;
 use App\Models\Service;
 use App\Notifications\ServiceLiveNotification;
 use App\Notifications\ServiceRejectedNotification;
+use App\Notifications\ServiceSuspendedNotification;
+use App\Notifications\ServiceTerminatedNotification;
+use App\Notifications\ServiceUnsuspendedNotification;
 use App\Services\AdminApiService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -53,7 +56,7 @@ class PollServiceStatusJob implements ShouldQueue
         ]);
 
         if ($oldStatus !== $service->status) {
-            $this->dispatchNotification($service);
+            $this->dispatchNotification($service, $oldStatus);
         }
 
         if (in_array($service->status, self::POLLING_STATES, true)) {
@@ -68,12 +71,18 @@ class PollServiceStatusJob implements ShouldQueue
             ->onQueue('sync');
     }
 
-    private function dispatchNotification(Service $service): void
+    private function dispatchNotification(Service $service, string $oldStatus): void
     {
         $client = $service->client;
 
         match ($service->status) {
-            'active'             => $client->notify(new ServiceLiveNotification($service)),
+            'active'             => $client->notify(
+                                        $oldStatus === 'suspended'
+                                            ? new ServiceUnsuspendedNotification($service)
+                                            : new ServiceLiveNotification($service)
+                                    ),
+            'suspended'          => $client->notify(new ServiceSuspendedNotification($service)),
+            'terminated'         => $client->notify(new ServiceTerminatedNotification($service)),
             'rejected', 'failed' => $client->notify(new ServiceRejectedNotification($service)),
             default              => null,
         };

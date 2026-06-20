@@ -6,8 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Models\Service;
 use App\Notifications\ServiceLiveNotification;
 use App\Notifications\ServiceRejectedNotification;
+use App\Notifications\ServiceSuspendedNotification;
+use App\Notifications\ServiceTerminatedNotification;
+use App\Notifications\ServiceUnsuspendedNotification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class ServiceStatusController extends Controller
 {
@@ -21,9 +25,15 @@ class ServiceStatusController extends Controller
             'provisioned_at' => ['nullable', 'string'],
         ]);
 
+        Log::info('service-status push received', [
+            'external_id' => $data['external_id'],
+            'status'      => $data['status'],
+        ]);
+
         $service = Service::find($data['external_id']);
 
         if (! $service) {
+            Log::warning('service-status push: service not found', ['external_id' => $data['external_id']]);
             return response()->json(['message' => 'Service not found.'], 404);
         }
 
@@ -40,18 +50,24 @@ class ServiceStatusController extends Controller
         ]);
 
         if ($oldStatus !== $service->status) {
-            $this->dispatchNotification($service);
+            $this->dispatchNotification($service, $oldStatus);
         }
 
         return response()->json(['message' => 'Service status updated.']);
     }
 
-    private function dispatchNotification(Service $service): void
+    private function dispatchNotification(Service $service, string $oldStatus): void
     {
         $client = $service->client;
 
         match ($service->status) {
-            'active'             => $client->notify(new ServiceLiveNotification($service)),
+            'active'             => $client->notify(
+                                        $oldStatus === 'suspended'
+                                            ? new ServiceUnsuspendedNotification($service)
+                                            : new ServiceLiveNotification($service)
+                                    ),
+            'suspended'          => $client->notify(new ServiceSuspendedNotification($service)),
+            'terminated'         => $client->notify(new ServiceTerminatedNotification($service)),
             'rejected', 'failed' => $client->notify(new ServiceRejectedNotification($service)),
             default              => null,
         };
