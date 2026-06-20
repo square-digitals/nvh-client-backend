@@ -12,7 +12,6 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
         then: function () {
             Route::get('/', fn () => response()->json(['message' => 'NVH Client Portal API']));
-            Route::post('/internal/webhooks/admin', [\App\Http\Controllers\Internal\AdminWebhookController::class, 'handle']);
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {

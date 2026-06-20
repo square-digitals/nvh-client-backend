@@ -27,6 +27,11 @@ class VerifyCsrfCookie
         ]);
 
         if (! $cookieToken || ! $headerToken || ! hash_equals($cookieToken, $headerToken)) {
+            Log::warning('CSRF token mismatch', [
+                'method' => $request->method(),
+                'path'   => $request->path(),
+                'ip'     => $request->ip(),
+            ]);
             return response()->json(['message' => 'CSRF token mismatch.'], 419);
         }
 
