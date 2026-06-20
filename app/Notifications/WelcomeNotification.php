@@ -8,6 +8,8 @@ use Illuminate\Notifications\Messages\MailMessage;
 
 class WelcomeNotification extends VerifyEmail implements ShouldQueue
 {
+    public string $queue = 'notifications';
+
     public function toMail(mixed $notifiable): MailMessage
     {
         $url = $this->verificationUrl($notifiable);
