@@ -28,15 +28,10 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
-    // Inbound webhook secret — validates calls from admin backend
-    'internal' => [
-        'secret' => env('INTERNAL_SECRET'),
-    ],
-
-    // Outbound calls to admin backend
+    // Admin backend — inbound pushes verified against this secret, outbound calls use it too
     'nvh_admin' => [
         'base_url' => env('NVH_ADMIN_BASE_URL'),
-        'secret'   => env('NVH_ADMIN_INTERNAL_SECRET'),
+        'secret'   => env('NVH_INTERNAL_SECRET'),
     ],
 
     // Paystack
