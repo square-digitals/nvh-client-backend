@@ -5,6 +5,7 @@ use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use App\Http\Controllers\Internal\AdminWebhookController;
+use App\Http\Controllers\Internal\ClientStatusController;
 use App\Http\Controllers\Internal\InvoiceSyncController;
 use App\Http\Controllers\Internal\ServiceStatusController;
 use App\Http\Controllers\Internal\TriggerSyncController;
@@ -60,6 +61,7 @@ Route::middleware(['auth:sanctum', 'csrf', 'verified'])->group(function () {
 */
 Route::prefix('internal')->middleware('internal.secret')->group(function () {
     Route::post('service-status',   [ServiceStatusController::class, 'update']);
+    Route::post('client-status',    [ClientStatusController::class, 'update']);
     Route::post('invoices/sync',    [InvoiceSyncController::class, 'sync']);
     Route::post('trigger-sync',     [TriggerSyncController::class, 'sync']);
 });
