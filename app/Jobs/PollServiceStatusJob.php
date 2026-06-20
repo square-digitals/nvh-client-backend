@@ -3,6 +3,8 @@
 namespace App\Jobs;
 
 use App\Models\Service;
+use App\Notifications\ServiceLiveNotification;
+use App\Notifications\ServiceRejectedNotification;
 use App\Services\AdminApiService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -68,8 +70,12 @@ class PollServiceStatusJob implements ShouldQueue
 
     private function dispatchNotification(Service $service): void
     {
-        // Notification jobs wired in Step 13
-        // 'active'             → NotifyServiceLiveJob::dispatch($service)->onQueue('notifications')
-        // 'rejected', 'failed' → NotifyServiceRejectedJob::dispatch($service)->onQueue('notifications')
+        $client = $service->client;
+
+        match ($service->status) {
+            'active'             => $client->notify(new ServiceLiveNotification($service)),
+            'rejected', 'failed' => $client->notify(new ServiceRejectedNotification($service)),
+            default              => null,
+        };
     }
 }
