@@ -11,6 +11,7 @@ use App\Notifications\ServiceTerminatedNotification;
 use App\Notifications\ServiceUnsuspendedNotification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class ServiceStatusController extends Controller
 {
@@ -24,9 +25,15 @@ class ServiceStatusController extends Controller
             'provisioned_at' => ['nullable', 'string'],
         ]);
 
+        Log::info('service-status push received', [
+            'external_id' => $data['external_id'],
+            'status'      => $data['status'],
+        ]);
+
         $service = Service::find($data['external_id']);
 
         if (! $service) {
+            Log::warning('service-status push: service not found', ['external_id' => $data['external_id']]);
             return response()->json(['message' => 'Service not found.'], 404);
         }
 
