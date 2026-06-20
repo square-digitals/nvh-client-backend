@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Internal;
 
 use App\Http\Controllers\Controller;
 use App\Models\Service;
+use App\Notifications\ServiceLiveNotification;
+use App\Notifications\ServiceRejectedNotification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -46,8 +48,12 @@ class ServiceStatusController extends Controller
 
     private function dispatchNotification(Service $service): void
     {
-        // Notification jobs wired in Step 13
-        // 'active'             → NotifyServiceLiveJob::dispatch($service)->onQueue('notifications')
-        // 'rejected', 'failed' → NotifyServiceRejectedJob::dispatch($service)->onQueue('notifications')
+        $client = $service->client;
+
+        match ($service->status) {
+            'active'             => $client->notify(new ServiceLiveNotification($service)),
+            'rejected', 'failed' => $client->notify(new ServiceRejectedNotification($service)),
+            default              => null,
+        };
     }
 }
