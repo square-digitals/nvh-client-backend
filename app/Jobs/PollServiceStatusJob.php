@@ -22,7 +22,7 @@ class PollServiceStatusJob implements ShouldQueue
     public int $tries   = 1;
     public int $timeout = 30;
 
-    private const POLLING_STATES  = ['pending_approval', 'provisioning'];
+    private const POLLING_STATES  = ['pending_approval', 'provisioning', 'active', 'suspended'];
     private const POLL_DELAY_SECS = 120;
 
     public function __construct(public readonly string $serviceId) {}
