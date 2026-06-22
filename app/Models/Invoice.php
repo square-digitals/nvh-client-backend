@@ -12,6 +12,7 @@ class Invoice extends Model
     use HasFactory, HasUuids;
 
     protected $fillable = [
+        'id',
         'client_id',
         'external_id',
         'amount',
