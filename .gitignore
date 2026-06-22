@@ -4,6 +4,7 @@
 .env.*
 .phpactor.json
 .phpunit.result.cache
+/.claude/
 /.codex
 /.cursor/
 /.idea
