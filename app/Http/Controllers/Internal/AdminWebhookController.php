@@ -17,15 +17,15 @@ class AdminWebhookController extends Controller
             return response()->json(['message' => 'Invalid signature.'], 401);
         }
 
-        $event      = $request->input('event');
-        $externalId = $request->input('id');
+        $event    = $request->input('event');
+        $clientId = $request->input('id');
 
-        Log::info('AdminWebhook received', ['event' => $event, 'id' => $externalId]);
+        Log::info('AdminWebhook received', ['event' => $event, 'id' => $clientId]);
 
-        $client = Client::find($externalId);
+        $client = Client::find($clientId);
 
         if (! $client) {
-            Log::warning('AdminWebhook: client not found', ['id' => $externalId]);
+            Log::warning('AdminWebhook: client not found', ['id' => $clientId]);
         }
 
         match ($event) {
