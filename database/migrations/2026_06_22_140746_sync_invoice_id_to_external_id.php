@@ -7,7 +7,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        DB::statement('UPDATE invoices SET id = external_id WHERE id != external_id');
+        DB::statement('UPDATE invoices SET id = external_id::uuid WHERE id != external_id::uuid');
     }
 
     public function down(): void
