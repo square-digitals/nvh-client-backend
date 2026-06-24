@@ -15,6 +15,8 @@ return Application::configure(basePath: dirname(__DIR__))
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->trustProxies(at: '*');
+
         $middleware->prepend(\App\Http\Middleware\ForceJsonResponse::class);
         $middleware->prepend(\App\Http\Middleware\SecurityHeaders::class);
 
@@ -32,7 +34,11 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $exceptions->render(function (\Throwable $e, $request) {
             if ((app()->isProduction() || app()->environment('staging')) && $request->is('api/*')) {
-                $status = method_exists($e, 'getStatusCode') ? $e->getStatusCode() : 500;
+                $status = match (true) {
+                    method_exists($e, 'getStatusCode') => $e->getStatusCode(),
+                    property_exists($e, 'status') && is_int($e->status) => $e->status,
+                    default => 500,
+                };
                 if ($status >= 500) {
                     \Illuminate\Support\Facades\Log::error($e->getMessage(), ['exception' => $e]);
                     return response()->json(['message' => 'An unexpected error occurred.'], 500);

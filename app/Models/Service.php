@@ -20,7 +20,6 @@ class Service extends Model
         'status',
         'url',
         'failed_reason',
-        'admin_service_id',
         'provisioned_at',
         'synced_at',
     ];

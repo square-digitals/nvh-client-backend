@@ -1,0 +1,22 @@
+# Stage 1: install dependencies
+FROM composer:2 AS builder
+WORKDIR /app
+COPY . .
+RUN composer install --no-interaction --optimize-autoloader --no-dev --ignore-platform-reqs
+
+# Stage 2: runtime
+FROM yomaokeremeta/nvh-php-base-worker:8.4
+
+COPY docker/opcache.ini /usr/local/etc/php/conf.d/opcache.ini
+COPY docker/start-worker.sh /usr/local/bin/start-worker.sh
+RUN chmod +x /usr/local/bin/start-worker.sh
+
+COPY --from=builder /app /app
+
+RUN chown -R www-data:www-data /app/storage /app/bootstrap/cache
+
+WORKDIR /app
+
+USER www-data
+
+CMD ["start-worker.sh"]

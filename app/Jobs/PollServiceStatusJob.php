@@ -3,6 +3,11 @@
 namespace App\Jobs;
 
 use App\Models\Service;
+use App\Notifications\ServiceLiveNotification;
+use App\Notifications\ServiceRejectedNotification;
+use App\Notifications\ServiceSuspendedNotification;
+use App\Notifications\ServiceTerminatedNotification;
+use App\Notifications\ServiceUnsuspendedNotification;
 use App\Services\AdminApiService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -17,7 +22,7 @@ class PollServiceStatusJob implements ShouldQueue
     public int $tries   = 1;
     public int $timeout = 30;
 
-    private const POLLING_STATES  = ['pending_approval', 'provisioning'];
+    private const POLLING_STATES  = ['pending_approval', 'provisioning', 'active', 'suspended'];
     private const POLL_DELAY_SECS = 120;
 
     public function __construct(public readonly string $serviceId) {}
@@ -46,12 +51,11 @@ class PollServiceStatusJob implements ShouldQueue
             'provisioned_at'   => isset($data['provisioned_at'])
                                     ? \Carbon\Carbon::parse($data['provisioned_at'])
                                     : null,
-            'admin_service_id' => $data['admin_service_id'] ?? $service->admin_service_id,
             'synced_at'        => now(),
         ]);
 
         if ($oldStatus !== $service->status) {
-            $this->dispatchNotification($service);
+            $this->dispatchNotification($service, $oldStatus);
         }
 
         if (in_array($service->status, self::POLLING_STATES, true)) {
@@ -66,10 +70,20 @@ class PollServiceStatusJob implements ShouldQueue
             ->onQueue('sync');
     }
 
-    private function dispatchNotification(Service $service): void
+    private function dispatchNotification(Service $service, string $oldStatus): void
     {
-        // Notification jobs wired in Step 13
-        // 'active'             → NotifyServiceLiveJob::dispatch($service)->onQueue('notifications')
-        // 'rejected', 'failed' → NotifyServiceRejectedJob::dispatch($service)->onQueue('notifications')
+        $client = $service->client;
+
+        match ($service->status) {
+            'active'             => $client->notify(
+                                        $oldStatus === 'suspended'
+                                            ? new ServiceUnsuspendedNotification($service)
+                                            : new ServiceLiveNotification($service)
+                                    ),
+            'suspended'          => $client->notify(new ServiceSuspendedNotification($service)),
+            'terminated'         => $client->notify(new ServiceTerminatedNotification($service)),
+            'rejected', 'failed' => $client->notify(new ServiceRejectedNotification($service)),
+            default              => null,
+        };
     }
 }

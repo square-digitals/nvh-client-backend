@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Notifications\WelcomeNotification;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -21,8 +22,8 @@ class Client extends Authenticatable implements MustVerifyEmail
         'phone',
         'company',
         'status',
+        'suspended_reason',
         'plan',
-        'external_admin_id',
     ];
 
     protected $hidden = [
@@ -36,6 +37,11 @@ class Client extends Authenticatable implements MustVerifyEmail
             'email_verified_at' => 'datetime',
             'password'          => 'hashed',
         ];
+    }
+
+    public function sendEmailVerificationNotification(): void
+    {
+        $this->notify(new WelcomeNotification());
     }
 
     public function services(): HasMany

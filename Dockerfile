@@ -5,16 +5,7 @@ COPY . .
 RUN composer install --no-interaction --optimize-autoloader --no-dev --ignore-platform-reqs
 
 # Stage 2: runtime
-FROM php:8.4-fpm-alpine
-
-RUN apk add --no-cache \
-    postgresql-dev \
-    icu-dev \
-    ca-certificates \
-    nginx \
-    supervisor
-
-RUN docker-php-ext-install pdo pdo_pgsql intl opcache
+FROM yomaokeremeta/nvh-php-base:8.4
 
 COPY docker/opcache.ini /usr/local/etc/php/conf.d/opcache.ini
 COPY docker/nginx.conf /etc/nginx/nginx.conf

@@ -33,14 +33,14 @@ class InternalSecretMiddlewareTest extends TestCase
 
     public function test_secret_passed_as_query_param_is_rejected(): void
     {
-        config(['services.internal.secret' => 'real-secret']);
+        config(['services.nvh_admin.secret' => 'real-secret']);
 
         $this->postJson('/_test/internal?secret=real-secret')->assertUnauthorized();
     }
 
     public function test_request_with_correct_secret_passes(): void
     {
-        config(['services.internal.secret' => 'real-secret']);
+        config(['services.nvh_admin.secret' => 'real-secret']);
 
         $this->withHeader('X-Internal-Secret', 'real-secret')
             ->postJson('/_test/internal')
