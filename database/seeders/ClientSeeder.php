@@ -43,8 +43,32 @@ class ClientSeeder extends Seeder
     public function run(): void
     {
         foreach (self::CLIENTS as $data) {
-            Client::where('email', $data['email'])->delete();
+            $existing = Client::where('email', $data['email'])->first();
 
+            if ($existing && $existing->id === $data['id']) {
+                // Already correct — leave it alone so services/invoices survive.
+                continue;
+            }
+
+            if ($existing && $existing->id !== $data['id']) {
+                // Wrong UUID — update the primary key in-place using a raw query
+                // so the cascade does not fire and child rows are preserved.
+                \Illuminate\Support\Facades\DB::table('clients')
+                    ->where('id', $existing->id)
+                    ->update(['id' => $data['id']]);
+
+                $existing->update([
+                    'name'              => $data['name'],
+                    'status'            => $data['status'],
+                    'plan'              => $data['plan'],
+                    'suspended_reason'  => $data['suspended_reason'] ?? null,
+                    'email_verified_at' => now(),
+                ]);
+
+                continue;
+            }
+
+            // No existing record — create fresh.
             Client::create([
                 'id'                => $data['id'],
                 'name'              => $data['name'],
