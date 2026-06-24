@@ -11,14 +11,14 @@ class ClientFactory extends Factory
     public function definition(): array
     {
         return [
-            'name'              => fake()->name(),
-            'email'             => fake()->unique()->safeEmail(),
+            'name'              => $this->faker->name(),
+            'email'             => $this->faker->unique()->safeEmail(),
             'password'          => Hash::make('password'),
             'email_verified_at' => now(),
-            'phone'             => fake()->optional()->phoneNumber(),
-            'company'           => fake()->optional()->company(),
+            'phone'             => $this->faker->optional()->phoneNumber(),
+            'company'           => $this->faker->optional()->company(),
             'status'            => 'active',
-            'plan'              => fake()->optional()->randomElement(['starter', 'pro', 'business']),
+            'plan'              => $this->faker->optional()->randomElement(['starter', 'pro', 'business']),
             'remember_token'    => Str::random(10),
         ];
     }

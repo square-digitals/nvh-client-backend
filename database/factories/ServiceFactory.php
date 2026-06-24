@@ -12,8 +12,8 @@ class ServiceFactory extends Factory
         return [
             'client_id' => Client::factory(),
             'type'      => 'wordpress',
-            'name'      => fake()->words(3, true),
-            'domain'    => fake()->domainName(),
+            'name'      => $this->faker->words(3, true),
+            'domain'    => $this->faker->domainName(),
             'status'    => 'pending_approval',
         ];
     }
@@ -22,7 +22,7 @@ class ServiceFactory extends Factory
     {
         return $this->state([
             'status'         => 'active',
-            'url'            => 'https://' . fake()->domainName(),
+            'url'            => 'https://' . $this->faker->domainName(),
             'provisioned_at' => now(),
         ]);
     }
