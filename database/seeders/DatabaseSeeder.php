@@ -8,6 +8,8 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        // Client portal data comes from client registrations and admin sync.
+        $this->call([
+            ClientSeeder::class,
+        ]);
     }
 }
