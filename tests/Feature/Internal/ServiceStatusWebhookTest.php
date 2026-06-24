@@ -50,7 +50,7 @@ class ServiceStatusWebhookTest extends TestCase
     public function test_rejects_missing_required_fields(): void
     {
         $this->webhook([])->assertUnprocessable()
-            ->assertJsonValidationErrors(['external_id', 'status']);
+            ->assertJsonValidationErrors(['id', 'status']);
     }
 
     public function test_rejects_invalid_status_value(): void
@@ -58,7 +58,7 @@ class ServiceStatusWebhookTest extends TestCase
         $service = $this->makeService();
 
         $this->webhook([
-            'external_id' => $service->id,
+            'id' => $service->id,
             'status'      => 'unknown-status',
         ])->assertUnprocessable()
           ->assertJsonValidationErrors(['status']);
@@ -69,7 +69,7 @@ class ServiceStatusWebhookTest extends TestCase
     public function test_returns_404_for_unknown_service(): void
     {
         $this->webhook([
-            'external_id' => 'non-existent-uuid',
+            'id' => 'non-existent-uuid',
             'status'      => 'active',
         ])->assertNotFound();
     }
@@ -81,7 +81,7 @@ class ServiceStatusWebhookTest extends TestCase
         $service = $this->makeService('provisioning');
 
         $this->webhook([
-            'external_id'    => $service->id,
+            'id'    => $service->id,
             'status'         => 'active',
             'url'            => 'https://myblog.com',
             'failed_reason'  => null,
@@ -100,7 +100,7 @@ class ServiceStatusWebhookTest extends TestCase
         $service = $this->makeService('pending_approval');
 
         $this->webhook([
-            'external_id'   => $service->id,
+            'id'   => $service->id,
             'status'        => 'rejected',
             'failed_reason' => 'Domain already in use.',
         ])->assertOk();
@@ -115,7 +115,7 @@ class ServiceStatusWebhookTest extends TestCase
         $service = $this->makeService('pending_approval');
 
         $this->webhook([
-            'external_id' => $service->id,
+            'id' => $service->id,
             'status'      => 'provisioning',
         ])->assertOk();
 
@@ -128,7 +128,7 @@ class ServiceStatusWebhookTest extends TestCase
         $service->update(['url' => 'https://old.com', 'failed_reason' => 'old error']);
 
         $this->webhook([
-            'external_id'   => $service->id,
+            'id'   => $service->id,
             'status'        => 'suspended',
             'url'           => null,
             'failed_reason' => null,
@@ -145,7 +145,7 @@ class ServiceStatusWebhookTest extends TestCase
         $this->assertNull($service->synced_at);
 
         $this->webhook([
-            'external_id' => $service->id,
+            'id' => $service->id,
             'status'      => 'active',
         ])->assertOk();
 

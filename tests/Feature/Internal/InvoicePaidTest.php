@@ -30,10 +30,10 @@ class InvoicePaidTest extends TestCase
         $client = Client::factory()->create();
 
         return Invoice::factory()->create(array_merge([
-            'client_id'   => $client->id,
-            'external_id' => 'admin-inv-001',
-            'status'      => 'unpaid',
-            'paid_at'     => null,
+            'id'        => 'admin-inv-001',
+            'client_id' => $client->id,
+            'status'    => 'unpaid',
+            'paid_at'   => null,
         ], $attrs));
     }
 
@@ -54,26 +54,26 @@ class InvoicePaidTest extends TestCase
     public function test_rejects_missing_fields(): void
     {
         $this->callPaid([])->assertUnprocessable()
-            ->assertJsonValidationErrors(['external_id', 'status', 'paid_at']);
+            ->assertJsonValidationErrors(['id', 'status', 'paid_at']);
     }
 
     public function test_rejects_invalid_status(): void
     {
         $this->callPaid([
-            'external_id' => 'admin-inv-001',
-            'status'      => 'unknown',
-            'paid_at'     => '2026-06-22T13:45:00Z',
+            'id'      => 'admin-inv-001',
+            'status'  => 'unknown',
+            'paid_at' => '2026-06-22T13:45:00Z',
         ])->assertUnprocessable()->assertJsonValidationErrors(['status']);
     }
 
     // --- Not found ---
 
-    public function test_returns_404_for_unknown_external_id(): void
+    public function test_returns_404_for_unknown_id(): void
     {
         $this->callPaid([
-            'external_id' => 'does-not-exist',
-            'status'      => 'paid',
-            'paid_at'     => '2026-06-22T13:45:00Z',
+            'id'      => 'does-not-exist',
+            'status'  => 'paid',
+            'paid_at' => '2026-06-22T13:45:00Z',
         ])->assertNotFound();
     }
 
@@ -84,9 +84,9 @@ class InvoicePaidTest extends TestCase
         $invoice = $this->makeInvoice();
 
         $this->callPaid([
-            'external_id' => 'admin-inv-001',
-            'status'      => 'paid',
-            'paid_at'     => '2026-06-22T13:45:00Z',
+            'id'      => 'admin-inv-001',
+            'status'  => 'paid',
+            'paid_at' => '2026-06-22T13:45:00Z',
         ])->assertOk()
           ->assertJsonPath('invoice.status', 'paid');
 
@@ -101,12 +101,12 @@ class InvoicePaidTest extends TestCase
         $this->makeInvoice();
 
         $this->callPaid([
-            'external_id' => 'admin-inv-001',
-            'status'      => 'paid',
-            'paid_at'     => '2026-06-22T13:45:00.000000Z',
+            'id'      => 'admin-inv-001',
+            'status'  => 'paid',
+            'paid_at' => '2026-06-22T13:45:00.000000Z',
         ])->assertOk();
 
-        $invoice = Invoice::where('external_id', 'admin-inv-001')->first();
+        $invoice = Invoice::find('admin-inv-001');
         $this->assertEquals('2026-06-22 13:45:00', $invoice->paid_at->format('Y-m-d H:i:s'));
     }
 
@@ -115,9 +115,9 @@ class InvoicePaidTest extends TestCase
         $this->makeInvoice();
 
         $payload = [
-            'external_id' => 'admin-inv-001',
-            'status'      => 'paid',
-            'paid_at'     => '2026-06-22T13:45:00Z',
+            'id'      => 'admin-inv-001',
+            'status'  => 'paid',
+            'paid_at' => '2026-06-22T13:45:00Z',
         ];
 
         $this->callPaid($payload)->assertOk();

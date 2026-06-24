@@ -11,7 +11,6 @@ class InvoiceFactory extends Factory
     {
         return [
             'client_id'    => Client::factory(),
-            'external_id'  => $this->faker->unique()->uuid(),
             'amount'       => $this->faker->randomFloat(2, 10, 500),
             'currency'     => 'NGN',
             'status'       => 'unpaid',

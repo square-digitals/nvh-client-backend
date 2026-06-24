@@ -175,7 +175,6 @@ List all services belonging to the authenticated client.
       "status": "active",
       "url": "https://myblog.com",
       "failed_reason": null,
-      "admin_service_id": "admin-svc-uuid",
       "provisioned_at": "2026-06-18T12:00:00Z",
       "synced_at": "2026-06-18T12:01:00Z",
       "created_at": "2026-06-18T10:00:00Z",
@@ -275,7 +274,6 @@ List all invoices belonging to the authenticated client, newest first.
     {
       "id": "019edc01-...",
       "client_id": "019edbda-...",
-      "external_id": "admin-inv-uuid",
       "amount": "15000.00",
       "currency": "NGN",
       "status": "unpaid",
@@ -304,7 +302,6 @@ Get a single invoice. Scoped to the authenticated client — returns 404 for oth
   "invoice": {
     "id": "019edc01-...",
     "client_id": "019edbda-...",
-    "external_id": "admin-inv-uuid",
     "amount": "15000.00",
     "currency": "NGN",
     "status": "paid",
@@ -332,7 +329,7 @@ All `/api/internal/*` routes are protected by the `X-Internal-Secret` header. Th
 ---
 
 ### POST /api/internal/invoices/sync
-Create or update an invoice record synced from the admin backend. Keyed on `external_id` — safe to call multiple times with the same payload (idempotent).
+Create or update an invoice record synced from the admin backend. Keyed on `id` (the admin's invoice UUID) — safe to call multiple times with the same payload (idempotent).
 
 **Auth required:** Internal secret header
 
@@ -340,7 +337,7 @@ Create or update an invoice record synced from the admin backend. Keyed on `exte
 ```json
 {
   "client_id":    "019edbda-...",
-  "external_id":  "admin-inv-001",
+  "id":           "admin-inv-001",
   "amount":       15000.00,
   "currency":     "NGN",
   "status":       "unpaid",
@@ -353,8 +350,8 @@ Create or update an invoice record synced from the admin backend. Keyed on `exte
 
 | Field | Type | Required | Description |
 |---|---|---|---|
-| `client_id` | string | Yes | Client portal `client.id` |
-| `external_id` | string | Yes | Admin backend invoice ID (upsert key) |
+| `client_id` | string | Yes | Client portal `client.id` (shared with admin backend) |
+| `id` | string | Yes | Admin backend invoice UUID (upsert key — stored as invoice `id` here) |
 | `amount` | numeric | Yes | Invoice amount (must be ≥ 0) |
 | `currency` | string | Yes | 3-letter ISO code (e.g. `NGN`) — uppercased automatically |
 | `status` | string | Yes | One of: `unpaid`, `paid`, `overdue`, `void` |
@@ -367,9 +364,8 @@ Create or update an invoice record synced from the admin backend. Keyed on `exte
 ```json
 {
   "invoice": {
-    "id": "019edc01-...",
+    "id": "admin-inv-001",
     "client_id": "019edbda-...",
-    "external_id": "admin-inv-001",
     "amount": "15000.00",
     "currency": "NGN",
     "status": "unpaid",
@@ -391,30 +387,30 @@ Create or update an invoice record synced from the admin backend. Keyed on `exte
 ---
 
 ### POST /api/internal/invoice-issued
-Receives a newly created invoice pushed from the admin backend when `POST /api/invoices` is called there. Creates the invoice in the client portal (or updates it if it already exists by `external_id`). The client is resolved via `client_external_id` → `clients.external_admin_id`.
+Receives a newly created invoice pushed from the admin backend when `POST /api/invoices` is called there. Creates the invoice in the client portal (or updates it if it already exists by `id`). The client is resolved via `client_id` (shared UUID).
 
 **Auth required:** `X-Internal-Secret` header
 
 **Request body:**
 ```json
 {
-  "external_id":        "019e...",
-  "client_external_id": "ext-client-id",
-  "amount":             "29.99",
-  "currency":           "USD",
-  "status":             "unpaid",
-  "due_date":           "2026-07-01",
-  "period_start":       "2026-07-01",
-  "period_end":         "2026-07-31"
+  "id":         "admin-inv-uuid",
+  "client_id":  "client-portal-uuid",
+  "amount":     "29.99",
+  "currency":   "NGN",
+  "status":     "unpaid",
+  "due_date":   "2026-07-01",
+  "period_start": "2026-07-01",
+  "period_end":   "2026-07-31"
 }
 ```
 
 | Field | Type | Required | Description |
 |---|---|---|---|
-| `external_id` | string | Yes | Admin backend invoice UUID (upsert key) |
-| `client_external_id` | string | Yes | Admin's external ID for the client — matched against `clients.external_admin_id` |
+| `id` | string | Yes | Admin backend invoice UUID — stored as the invoice `id` in the portal |
+| `client_id` | string | Yes | Shared client UUID (same on both systems) |
 | `amount` | numeric | Yes | Invoice amount (must be ≥ 0) |
-| `currency` | string | Yes | 3-letter ISO code (e.g. `USD`) — uppercased automatically |
+| `currency` | string | Yes | 3-letter ISO code (e.g. `NGN`) — uppercased automatically |
 | `status` | string | Yes | One of: `unpaid`, `paid`, `overdue`, `void` |
 | `due_date` | date | Yes | Payment due date |
 | `period_start` | date\|null | No | Billing period start |
@@ -424,11 +420,10 @@ Receives a newly created invoice pushed from the admin backend when `POST /api/i
 ```json
 {
   "invoice": {
-    "id": "019edc01-...",
-    "client_id": "019edbda-...",
-    "external_id": "019e...",
+    "id": "admin-inv-uuid",
+    "client_id": "client-portal-uuid",
     "amount": "29.99",
-    "currency": "USD",
+    "currency": "NGN",
     "status": "unpaid",
     "due_date": "2026-07-01",
     "paid_at": null,
@@ -441,21 +436,21 @@ Receives a newly created invoice pushed from the admin backend when `POST /api/i
 }
 ```
 
-**Response `404`:** Client not found (unknown `client_external_id`)
+**Response `404`:** Client not found (unknown `client_id`)
 **Response `401`:** Missing or invalid `X-Internal-Secret`
 **Response `422`:** Validation error
 
 ---
 
 ### POST /api/internal/invoice-paid
-Fired by the admin backend when an invoice is marked as paid. Looks up the invoice by `external_id` and updates its status and `paid_at` timestamp.
+Fired by the admin backend when an invoice is marked as paid. Looks up the invoice by `id` and updates its status and `paid_at` timestamp.
 
 **Auth required:** `X-Internal-Secret` header
 
 **Request body:**
 ```json
 {
-  "external_id": "019eef8d-b6c3-7357-bf63-f3f770f00b36",
+  "id":     "019eef8d-b6c3-7357-bf63-f3f770f00b36",
   "status": "paid",
   "paid_at": "2026-06-22T13:45:00.000000Z"
 }
@@ -463,7 +458,7 @@ Fired by the admin backend when an invoice is marked as paid. Looks up the invoi
 
 | Field | Type | Required | Description |
 |---|---|---|---|
-| `external_id` | string | Yes | Admin backend invoice UUID — match key |
+| `id` | string | Yes | Admin backend invoice UUID — match key |
 | `status` | string | Yes | One of: `unpaid`, `paid`, `overdue`, `void` |
 | `paid_at` | ISO8601 | Yes | Timestamp when payment was received |
 
@@ -471,8 +466,7 @@ Fired by the admin backend when an invoice is marked as paid. Looks up the invoi
 ```json
 {
   "invoice": {
-    "id": "019edc01-...",
-    "external_id": "019eef8d-...",
+    "id": "019eef8d-...",
     "status": "paid",
     "paid_at": "2026-06-22T13:45:00.000000Z",
     "synced_at": "2026-06-22T13:45:01.000000Z"
@@ -480,7 +474,7 @@ Fired by the admin backend when an invoice is marked as paid. Looks up the invoi
 }
 ```
 
-**Response `404`:** Invoice not found (unknown `external_id`)
+**Response `404`:** Invoice not found (unknown `id`)
 **Response `401`:** Missing or invalid `X-Internal-Secret`
 **Response `422`:** Validation error
 
@@ -499,8 +493,8 @@ Pushes all clients and services to the admin backend in bulk. Called by the admi
 ```
 
 Sends two requests to the admin backend:
-- `POST /api/internal/clients/sync` — all clients with `external_id`, `name`, `email`, `status`, `plan_slug`
-- `POST /api/internal/services/sync` — all services with `external_id`, `client_external_id`, `type`, `name`, `domain`, `status`
+- `POST /api/internal/clients/sync` — all clients with `id`, `name`, `email`, `status`, `plan_slug`
+- `POST /api/internal/services/sync` — all services with `id`, `client_id`, `type`, `name`, `domain`, `status`
 
 Failures on either call are logged silently and do not affect the `200` response.
 
@@ -516,7 +510,7 @@ Receive a client status update pushed directly from the admin backend. Updates t
 **Request body (suspended):**
 ```json
 {
-  "external_id": "uuid-of-the-client",
+  "id": "uuid-of-the-client",
   "status": "suspended",
   "suspended_reason": "Non-payment of invoice #INV-0042.",
   "suspended_at": "2026-06-20T10:00:00+00:00"
@@ -526,7 +520,7 @@ Receive a client status update pushed directly from the admin backend. Updates t
 **Request body (unsuspended):**
 ```json
 {
-  "external_id": "uuid-of-the-client",
+  "id": "uuid-of-the-client",
   "status": "active",
   "suspended_reason": null,
   "suspended_at": null
@@ -557,7 +551,7 @@ Receive a service status update pushed from the admin backend. Updates the local
 **Request body:**
 ```json
 {
-  "external_id": "019edc00-...",
+  "id": "019edc00-...",
   "status": "active",
   "url": "https://myblog.com",
   "failed_reason": null,
@@ -567,7 +561,7 @@ Receive a service status update pushed from the admin backend. Updates the local
 
 | Field | Type | Required | Description |
 |---|---|---|---|
-| `external_id` | string | Yes | The client portal `service.id` |
+| `id` | string | Yes | The service UUID (shared between both backends) |
 | `status` | string | Yes | One of: `pending_approval`, `provisioning`, `active`, `suspended`, `failed`, `rejected`, `terminated` |
 | `url` | string\|null | No | Live URL once provisioned |
 | `failed_reason` | string\|null | No | Human-readable failure reason |

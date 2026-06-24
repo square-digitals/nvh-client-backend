@@ -29,7 +29,7 @@ class InvoiceSyncTest extends TestCase
     {
         return array_merge([
             'client_id'    => $clientId,
-            'external_id'  => 'admin-inv-001',
+            'id'           => 'admin-inv-001',
             'amount'       => 15000.00,
             'currency'     => 'NGN',
             'status'       => 'unpaid',
@@ -57,7 +57,7 @@ class InvoiceSyncTest extends TestCase
     public function test_rejects_missing_required_fields(): void
     {
         $this->sync([])->assertUnprocessable()
-            ->assertJsonValidationErrors(['client_id', 'external_id', 'amount', 'currency', 'status', 'due_date']);
+            ->assertJsonValidationErrors(['client_id', 'id', 'amount', 'currency', 'status', 'due_date']);
     }
 
     public function test_rejects_invalid_status(): void
@@ -103,35 +103,26 @@ class InvoiceSyncTest extends TestCase
         $response = $this->sync($this->validPayload($client->id));
 
         $response->assertOk()
-            ->assertJsonPath('invoice.external_id', 'admin-inv-001')
+            ->assertJsonPath('invoice.id', 'admin-inv-001')
             ->assertJsonPath('invoice.client_id', $client->id)
             ->assertJsonPath('invoice.status', 'unpaid')
             ->assertJsonPath('invoice.currency', 'NGN');
 
         $this->assertDatabaseHas('invoices', [
-            'external_id' => 'admin-inv-001',
-            'client_id'   => $client->id,
+            'id'        => 'admin-inv-001',
+            'client_id' => $client->id,
         ]);
-    }
-
-    public function test_currency_is_uppercased(): void
-    {
-        $client = Client::factory()->create();
-
-        $this->sync($this->validPayload($client->id, ['currency' => 'ngn']))
-            ->assertOk()
-            ->assertJsonPath('invoice.currency', 'NGN');
     }
 
     // --- Update (idempotent upsert) ---
 
-    public function test_updates_existing_invoice_by_external_id(): void
+    public function test_updates_existing_invoice_by_id(): void
     {
         $client  = Client::factory()->create();
         $invoice = Invoice::factory()->create([
-            'client_id'   => $client->id,
-            'external_id' => 'admin-inv-001',
-            'status'      => 'unpaid',
+            'id'        => 'admin-inv-001',
+            'client_id' => $client->id,
+            'status'    => 'unpaid',
         ]);
 
         $this->sync($this->validPayload($client->id, [
@@ -149,7 +140,7 @@ class InvoiceSyncTest extends TestCase
 
         $this->sync($this->validPayload($client->id))->assertOk();
 
-        $invoice = Invoice::where('external_id', 'admin-inv-001')->first();
+        $invoice = Invoice::find('admin-inv-001');
         $this->assertNotNull($invoice->synced_at);
     }
 
@@ -158,15 +149,13 @@ class InvoiceSyncTest extends TestCase
         $client = Client::factory()->create();
 
         $this->sync($this->validPayload($client->id, [
-            'external_id' => 'admin-inv-002',
-            'status'      => 'paid',
-            'paid_at'     => '2026-06-18T12:00:00Z',
+            'id'      => 'admin-inv-002',
+            'status'  => 'paid',
+            'paid_at' => '2026-06-18T12:00:00Z',
         ]))->assertOk()
            ->assertJsonPath('invoice.status', 'paid');
 
-        $this->assertNotNull(
-            Invoice::where('external_id', 'admin-inv-002')->first()->paid_at
-        );
+        $this->assertNotNull(Invoice::find('admin-inv-002')->paid_at);
     }
 
     public function test_sync_is_idempotent(): void

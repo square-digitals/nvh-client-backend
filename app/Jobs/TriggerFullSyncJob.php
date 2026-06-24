@@ -31,11 +31,11 @@ class TriggerFullSyncJob implements ShouldQueue
     private function syncClients(string $adminUrl, string $secret): void
     {
         $clients = Client::all()->map(fn (Client $c) => [
-            'external_id' => $c->id,
-            'name'        => $c->name,
-            'email'       => $c->email,
-            'status'      => $c->status,
-            'plan_slug'   => $c->plan,
+            'id'        => $c->id,
+            'name'      => $c->name,
+            'email'     => $c->email,
+            'status'    => $c->status,
+            'plan_slug' => $c->plan,
         ])->values()->all();
 
         try {
@@ -49,12 +49,12 @@ class TriggerFullSyncJob implements ShouldQueue
     private function syncServices(string $adminUrl, string $secret): void
     {
         $services = Service::all()->map(fn (Service $s) => [
-            'external_id'        => $s->id,
-            'client_external_id' => $s->client_id,
-            'type'               => $s->type,
-            'name'               => $s->name,
-            'domain'             => $s->domain,
-            'status'             => $s->status,
+            'id'        => $s->id,
+            'client_id' => $s->client_id,
+            'type'      => $s->type,
+            'name'      => $s->name,
+            'domain'    => $s->domain,
+            'status'    => $s->status,
         ])->values()->all();
 
         try {

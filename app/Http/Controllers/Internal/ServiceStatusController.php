@@ -18,7 +18,7 @@ class ServiceStatusController extends Controller
     public function update(Request $request): JsonResponse
     {
         $data = $request->validate([
-            'external_id'    => ['required', 'string'],
+            'id'             => ['required', 'string'],
             'status'         => ['required', 'string', 'in:pending_approval,provisioning,active,suspended,failed,rejected,terminated'],
             'url'            => ['nullable', 'string'],
             'failed_reason'  => ['nullable', 'string'],
@@ -26,14 +26,14 @@ class ServiceStatusController extends Controller
         ]);
 
         Log::info('service-status push received', [
-            'external_id' => $data['external_id'],
-            'status'      => $data['status'],
+            'id'     => $data['id'],
+            'status' => $data['status'],
         ]);
 
-        $service = Service::find($data['external_id']);
+        $service = Service::find($data['id']);
 
         if (! $service) {
-            Log::warning('service-status push: service not found', ['external_id' => $data['external_id']]);
+            Log::warning('service-status push: service not found', ['id' => $data['id']]);
             return response()->json(['message' => 'Service not found.'], 404);
         }
 

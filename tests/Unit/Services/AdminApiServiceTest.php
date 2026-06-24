@@ -46,11 +46,11 @@ class AdminApiServiceTest extends TestCase
         $body = json_decode($history[0]['request']->getBody()->getContents(), true);
 
         $this->assertEquals([[
-            'external_id' => 'uuid-001',
-            'name'        => 'Alice',
-            'email'       => 'alice@example.com',
-            'plan_slug'   => 'starter',
-            'status'      => 'active',
+            'id'        => 'uuid-001',
+            'name'      => 'Alice',
+            'email'     => 'alice@example.com',
+            'plan_slug' => 'starter',
+            'status'    => 'active',
         ]], $body['clients']);
     }
 
@@ -73,12 +73,12 @@ class AdminApiServiceTest extends TestCase
         $body = json_decode($history[0]['request']->getBody()->getContents(), true);
 
         $this->assertEquals([[
-            'external_id'        => 'svc-001',
-            'client_external_id' => 'client-001',
-            'type'               => 'wordpress',
-            'status'             => 'pending_approval',
-            'name'               => 'My Blog',
-            'domain'             => 'myblog.com',
+            'id'        => 'svc-001',
+            'client_id' => 'client-001',
+            'type'      => 'wordpress',
+            'status'    => 'pending_approval',
+            'name'      => 'My Blog',
+            'domain'    => 'myblog.com',
         ]], $body['services']);
     }
 
@@ -87,16 +87,16 @@ class AdminApiServiceTest extends TestCase
         $history = [];
         $adminService = $this->makeService([new Response(200)], $history);
 
-        $invoice              = new Invoice();
-        $invoice->id          = 'inv-001';
-        $invoice->external_id = 'ext-inv-001';
+        $invoice             = new Invoice();
+        $invoice->id         = 'inv-001';
+        $invoice->client_id  = 'client-001';
 
         $adminService->syncInvoicePaid($invoice);
 
         $this->assertCount(1, $history);
         $body = json_decode($history[0]['request']->getBody()->getContents(), true);
 
-        $this->assertEquals('ext-inv-001', $body[0]['external_id']);
+        $this->assertEquals('inv-001', $body[0]['id']);
         $this->assertEquals('paid', $body[0]['status']);
         $this->assertArrayHasKey('paid_at', $body[0]);
     }
@@ -115,7 +115,6 @@ class AdminApiServiceTest extends TestCase
         $client     = new Client(['name' => 'Bob', 'email' => 'bob@example.com']);
         $client->id = 'uuid-002';
 
-        // Must not throw
         $service->syncClient($client);
 
         $this->assertTrue(true);

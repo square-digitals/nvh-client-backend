@@ -17,25 +17,24 @@ class InvoiceSyncController extends Controller
         Log::info('invoice-issued received', $request->all());
 
         $data = $request->validate([
-            'external_id'        => ['required', 'string'],
-            'client_external_id' => ['required', 'string'],
-            'amount'             => ['required', 'numeric', 'min:0'],
-            'status'             => ['required', 'string', 'in:unpaid,paid,overdue,void'],
-            'due_date'           => ['required', 'date'],
-            'period_start'       => ['nullable', 'date'],
-            'period_end'         => ['nullable', 'date'],
+            'id'           => ['required', 'string'],
+            'client_id'    => ['required', 'string'],
+            'amount'       => ['required', 'numeric', 'min:0'],
+            'status'       => ['required', 'string', 'in:unpaid,paid,overdue,void'],
+            'due_date'     => ['required', 'date'],
+            'period_start' => ['nullable', 'date'],
+            'period_end'   => ['nullable', 'date'],
         ]);
 
-        $client = Client::where('external_admin_id', $data['client_external_id'])->first();
+        $client = Client::find($data['client_id']);
 
         if (! $client) {
             return response()->json(['message' => 'Client not found.'], 404);
         }
 
         $invoice = Invoice::updateOrCreate(
-            ['external_id' => $data['external_id']],
+            ['id' => $data['id']],
             [
-                'id'           => $data['external_id'],
                 'client_id'    => $client->id,
                 'amount'       => $data['amount'],
                 'currency'     => 'NGN',
@@ -55,21 +54,21 @@ class InvoiceSyncController extends Controller
         Log::info('invoice-paid received', $request->all());
 
         $data = $request->validate([
-            'external_id' => ['required', 'string'],
-            'status'      => ['required', 'string', 'in:unpaid,paid,overdue,void'],
-            'paid_at'     => ['required', 'string'],
+            'id'      => ['required', 'string'],
+            'status'  => ['required', 'string', 'in:unpaid,paid,overdue,void'],
+            'paid_at' => ['required', 'string'],
         ]);
 
-        $invoice = Invoice::where('external_id', $data['external_id'])->first();
+        $invoice = Invoice::find($data['id']);
 
         if (! $invoice) {
             return response()->json(['message' => 'Invoice not found.'], 404);
         }
 
         $invoice->update([
-            'status'     => $data['status'],
-            'paid_at'    => Carbon::parse($data['paid_at']),
-            'synced_at'  => now(),
+            'status'    => $data['status'],
+            'paid_at'   => Carbon::parse($data['paid_at']),
+            'synced_at' => now(),
         ]);
 
         return response()->json(['invoice' => $invoice]);
@@ -79,7 +78,7 @@ class InvoiceSyncController extends Controller
     {
         $data = $request->validate([
             'client_id'    => ['required', 'string'],
-            'external_id'  => ['required', 'string'],
+            'id'           => ['required', 'string'],
             'amount'       => ['required', 'numeric', 'min:0'],
             'status'       => ['required', 'string', 'in:unpaid,paid,overdue,void'],
             'due_date'     => ['required', 'date'],
@@ -95,9 +94,8 @@ class InvoiceSyncController extends Controller
         }
 
         $invoice = Invoice::updateOrCreate(
-            ['external_id' => $data['external_id']],
+            ['id' => $data['id']],
             [
-                'id'           => $data['external_id'],
                 'client_id'    => $client->id,
                 'amount'       => $data['amount'],
                 'currency'     => 'NGN',

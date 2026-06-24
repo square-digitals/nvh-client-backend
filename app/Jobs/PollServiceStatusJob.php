@@ -51,7 +51,6 @@ class PollServiceStatusJob implements ShouldQueue
             'provisioned_at'   => isset($data['provisioned_at'])
                                     ? \Carbon\Carbon::parse($data['provisioned_at'])
                                     : null,
-            'admin_service_id' => $data['admin_service_id'] ?? $service->admin_service_id,
             'synced_at'        => now(),
         ]);
 

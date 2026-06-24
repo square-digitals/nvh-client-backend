@@ -24,7 +24,6 @@ class Client extends Authenticatable implements MustVerifyEmail
         'status',
         'suspended_reason',
         'plan',
-        'external_admin_id',
     ];
 
     protected $hidden = [
