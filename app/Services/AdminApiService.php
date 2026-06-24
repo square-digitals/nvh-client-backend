@@ -64,6 +64,7 @@ class AdminApiService
                 'service_id' => $service->id,
                 'error'      => $e->getMessage(),
             ]);
+            throw $e;
         }
     }
 
