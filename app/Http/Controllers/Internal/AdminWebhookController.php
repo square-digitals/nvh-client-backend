@@ -18,14 +18,14 @@ class AdminWebhookController extends Controller
         }
 
         $event      = $request->input('event');
-        $externalId = $request->input('external_id');
+        $externalId = $request->input('id');
 
-        Log::info('AdminWebhook received', ['event' => $event, 'external_id' => $externalId]);
+        Log::info('AdminWebhook received', ['event' => $event, 'id' => $externalId]);
 
         $client = Client::find($externalId);
 
         if (! $client) {
-            Log::warning('AdminWebhook: client not found', ['external_id' => $externalId]);
+            Log::warning('AdminWebhook: client not found', ['id' => $externalId]);
         }
 
         match ($event) {

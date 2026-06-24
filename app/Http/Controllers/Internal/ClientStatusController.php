@@ -14,14 +14,13 @@ class ClientStatusController extends Controller
     public function update(Request $request): JsonResponse
     {
         $data = $request->validate([
-            'external_id'      => ['required', 'string'],
+            'id'               => ['required', 'string'],
             'status'           => ['required', 'string', 'in:active,suspended'],
             'suspended_reason' => ['nullable', 'string'],
             'suspended_at'     => ['nullable', 'string'],
         ]);
 
-        $client = Client::where('external_admin_id', $data['external_id'])->first()
-            ?? Client::find($data['external_id']);
+        $client = Client::find($data['id']);
 
         if (! $client) {
             return response()->json(['message' => 'Client not found.'], 404);

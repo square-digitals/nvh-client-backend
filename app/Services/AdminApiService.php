@@ -31,11 +31,11 @@ class AdminApiService
         try {
             $this->http->post('/api/internal/clients/sync', [
                 'json' => ['clients' => [[
-                    'external_id' => $client->id,
-                    'name'        => $client->name,
-                    'email'       => $client->email,
-                    'plan_slug'   => $client->plan,
-                    'status'      => $client->status,
+                    'id'        => $client->id,
+                    'name'      => $client->name,
+                    'email'     => $client->email,
+                    'plan_slug' => $client->plan,
+                    'status'    => $client->status,
                 ]]],
             ]);
         } catch (GuzzleException $e) {
@@ -51,12 +51,12 @@ class AdminApiService
         try {
             $this->http->post('/api/internal/services/sync', [
                 'json' => ['services' => [[
-                    'external_id'        => $service->id,
-                    'client_external_id' => $service->client_id,
-                    'type'               => $service->type,
-                    'status'             => $service->status,
-                    'name'               => $service->name,
-                    'domain'             => $service->domain,
+                    'id'        => $service->id,
+                    'client_id' => $service->client_id,
+                    'type'      => $service->type,
+                    'status'    => $service->status,
+                    'name'      => $service->name,
+                    'domain'    => $service->domain,
                 ]]],
             ]);
         } catch (GuzzleException $e) {
@@ -86,9 +86,10 @@ class AdminApiService
         try {
             $this->http->post('/api/internal/invoices/sync', [
                 'json' => [[
-                    'external_id' => $invoice->external_id,
-                    'status'      => 'paid',
-                    'paid_at'     => now()->toIso8601String(),
+                    'id'        => $invoice->id,
+                    'client_id' => $invoice->client_id,
+                    'status'    => 'paid',
+                    'paid_at'   => now()->toIso8601String(),
                 ]],
             ]);
         } catch (GuzzleException $e) {

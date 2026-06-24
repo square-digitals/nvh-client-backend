@@ -36,7 +36,7 @@ class InvoiceTest extends TestCase
             ->assertJsonCount(3, 'invoices')
             ->assertJsonStructure([
                 'invoices' => [[
-                    'id', 'client_id', 'external_id', 'amount', 'currency',
+                    'id', 'client_id', 'amount', 'currency',
                     'status', 'due_date', 'paid_at', 'period_start',
                     'period_end', 'synced_at', 'created_at', 'updated_at',
                 ]],
