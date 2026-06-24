@@ -62,6 +62,8 @@ Route::middleware(['auth:sanctum', 'csrf', 'verified'])->group(function () {
 Route::prefix('internal')->middleware('internal.secret')->group(function () {
     Route::post('service-status',   [ServiceStatusController::class, 'update']);
     Route::post('client-status',    [ClientStatusController::class, 'update']);
+    Route::post('invoice-issued',   [InvoiceSyncController::class, 'issued']);
+    Route::post('invoice-paid',     [InvoiceSyncController::class, 'paid']);
     Route::post('invoices/sync',    [InvoiceSyncController::class, 'sync']);
     Route::post('trigger-sync',     [TriggerSyncController::class, 'sync']);
 });

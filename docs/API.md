@@ -390,6 +390,102 @@ Create or update an invoice record synced from the admin backend. Keyed on `exte
 
 ---
 
+### POST /api/internal/invoice-issued
+Receives a newly created invoice pushed from the admin backend when `POST /api/invoices` is called there. Creates the invoice in the client portal (or updates it if it already exists by `external_id`). The client is resolved via `client_external_id` → `clients.external_admin_id`.
+
+**Auth required:** `X-Internal-Secret` header
+
+**Request body:**
+```json
+{
+  "external_id":        "019e...",
+  "client_external_id": "ext-client-id",
+  "amount":             "29.99",
+  "currency":           "USD",
+  "status":             "unpaid",
+  "due_date":           "2026-07-01",
+  "period_start":       "2026-07-01",
+  "period_end":         "2026-07-31"
+}
+```
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `external_id` | string | Yes | Admin backend invoice UUID (upsert key) |
+| `client_external_id` | string | Yes | Admin's external ID for the client — matched against `clients.external_admin_id` |
+| `amount` | numeric | Yes | Invoice amount (must be ≥ 0) |
+| `currency` | string | Yes | 3-letter ISO code (e.g. `USD`) — uppercased automatically |
+| `status` | string | Yes | One of: `unpaid`, `paid`, `overdue`, `void` |
+| `due_date` | date | Yes | Payment due date |
+| `period_start` | date\|null | No | Billing period start |
+| `period_end` | date\|null | No | Billing period end |
+
+**Response `200`:**
+```json
+{
+  "invoice": {
+    "id": "019edc01-...",
+    "client_id": "019edbda-...",
+    "external_id": "019e...",
+    "amount": "29.99",
+    "currency": "USD",
+    "status": "unpaid",
+    "due_date": "2026-07-01",
+    "paid_at": null,
+    "period_start": "2026-07-01",
+    "period_end": "2026-07-31",
+    "synced_at": "2026-06-22T10:00:00Z",
+    "created_at": "2026-06-22T10:00:00Z",
+    "updated_at": "2026-06-22T10:00:00Z"
+  }
+}
+```
+
+**Response `404`:** Client not found (unknown `client_external_id`)
+**Response `401`:** Missing or invalid `X-Internal-Secret`
+**Response `422`:** Validation error
+
+---
+
+### POST /api/internal/invoice-paid
+Fired by the admin backend when an invoice is marked as paid. Looks up the invoice by `external_id` and updates its status and `paid_at` timestamp.
+
+**Auth required:** `X-Internal-Secret` header
+
+**Request body:**
+```json
+{
+  "external_id": "019eef8d-b6c3-7357-bf63-f3f770f00b36",
+  "status": "paid",
+  "paid_at": "2026-06-22T13:45:00.000000Z"
+}
+```
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `external_id` | string | Yes | Admin backend invoice UUID — match key |
+| `status` | string | Yes | One of: `unpaid`, `paid`, `overdue`, `void` |
+| `paid_at` | ISO8601 | Yes | Timestamp when payment was received |
+
+**Response `200`:**
+```json
+{
+  "invoice": {
+    "id": "019edc01-...",
+    "external_id": "019eef8d-...",
+    "status": "paid",
+    "paid_at": "2026-06-22T13:45:00.000000Z",
+    "synced_at": "2026-06-22T13:45:01.000000Z"
+  }
+}
+```
+
+**Response `404`:** Invoice not found (unknown `external_id`)
+**Response `401`:** Missing or invalid `X-Internal-Secret`
+**Response `422`:** Validation error
+
+---
+
 ### POST /api/internal/trigger-sync
 Pushes all clients and services to the admin backend in bulk. Called by the admin's "Sync" button to pull everything into the admin dashboard instantly.
 
